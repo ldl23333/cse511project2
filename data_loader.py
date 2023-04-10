@@ -58,6 +58,27 @@ class DataLoader:
         trips.to_csv(save_loc, index=False)
 
         # TODO: Your code here
+        '''df = pd.read_csv(save_loc)
+        location_ids = set(df["PULocationID"]).union(set(df["DOLocationID"]))
+        with self.driver.session() as session:
+            for location_id in location_ids:
+                session.run("CREATE (:Location {name: $name})", name=int(location_id))
+        
+            for index, row in df.iterrows():
+                session.run("""
+                MATCH (pickup:Location {name: $pickup_id}), (dropoff:Location {name: $dropoff_id})
+                CREATE (pickup)-[trip:TRIP]->(dropoff)
+                SET trip.distance = $distance,
+                trip.fare = $fare_amount,
+                trip.pickup_dt = datetime($pickup_dt),
+                trip.dropoff_dt = datetime($dropoff_dt)
+                """, pickup_id=row["PULocationID"], dropoff_id=row["DOLocationID"],
+                distance=float(row["trip_distance"]), fare_amount=float(row["fare_amount"]),
+                pickup_dt=row["tpep_pickup_datetime"], dropoff_dt=row["tpep_dropoff_datetime"])
+        
+        self.driver.close()'''
+
+        
 
 
 def main():
