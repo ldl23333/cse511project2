@@ -58,25 +58,44 @@ class DataLoader:
         trips.to_csv(save_loc, index=False)
 
         # TODO: Your code here
-        '''df = pd.read_csv(save_loc)
+        df = pd.read_csv(save_loc)
         location_ids = set(df["PULocationID"]).union(set(df["DOLocationID"]))
+        
+        def convert_datetime(dt_str):
+            dt_obj = pd.to_datetime(dt_str, format='%Y-%m-%d %H:%M:%S')
+            return dt_obj.isoformat()
+
+        # apply the function to the pickup and dropoff datetime columns
+        df['tpep_pickup_datetime'] = df['tpep_pickup_datetime'].apply(convert_datetime)
+        df['tpep_dropoff_datetime'] = df['tpep_dropoff_datetime'].apply(convert_datetime)
+
         with self.driver.session() as session:
             for location_id in location_ids:
                 session.run("CREATE (:Location {name: $name})", name=int(location_id))
+            self.driver.close()
         
+        with self.driver.session() as session:
             for index, row in df.iterrows():
+                session.run("""MATCH (pickup:Location {name: $pickup_id}), (dropoff:Location {name: $dropoff_id})
+                CREATE (pickup)-[trip:TRIP {distance: $distance, fare: $fare, pickup_dt: datetime($pickup_dt), dropoff_dt: datetime($dropoff_dt)}]->(dropoff)"""
+                ,pickup_id=row["PULocationID"], dropoff_id=row["DOLocationID"],
+                distance=float(row["trip_distance"]), fare=float(row["fare_amount"]),
+                pickup_dt=row["tpep_pickup_datetime"], dropoff_dt=row["tpep_dropoff_datetime"])
+            self.driver.close()
+            
+            '''for index, row in df.iterrows():
                 session.run("""
                 MATCH (pickup:Location {name: $pickup_id}), (dropoff:Location {name: $dropoff_id})
-                CREATE (pickup)-[trip:TRIP]->(dropoff)
+                CREATE (pickup)-[trip:TRIP]->(dropoff)s
                 SET trip.distance = $distance,
                 trip.fare = $fare_amount,
                 trip.pickup_dt = datetime($pickup_dt),
                 trip.dropoff_dt = datetime($dropoff_dt)
                 """, pickup_id=row["PULocationID"], dropoff_id=row["DOLocationID"],
                 distance=float(row["trip_distance"]), fare_amount=float(row["fare_amount"]),
-                pickup_dt=row["tpep_pickup_datetime"], dropoff_dt=row["tpep_dropoff_datetime"])
+                pickup_dt=row["tpep_pickup_datetime"], dropoff_dt=row["tpep_dropoff_datetime"])'''
         
-        self.driver.close()'''
+            #self.driver.close()
 
         
 
