@@ -41,9 +41,9 @@ class Interface:
                 'Location',
                 'TRIP',
                 {
-                    relationshipProperties: 'distance'
+                    relationshipProperties: $weighit_property
                 }
-                )""")
+                )""", weighit_property = weight_property)
             result = session.run("""
                 CALL gds.pageRank.stream('pageGraph',{
                 maxIterations: $max_iterations,
